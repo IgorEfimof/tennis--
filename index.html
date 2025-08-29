@@ -20,10 +20,12 @@
             --btn-reset: #3498db;
             --btn-player: #9b59b6;
             --btn-theme: #34495e;
+            --btn-settings: #f39c12;
             --border-color: #ddd;
             --results-bg: #f8f9fa;
             --table-header: #f2f2f2;
             --stats-bg: #e8f4fc;
+            --modal-bg: rgba(0,0,0,0.5);
         }
 
         .dark-theme {
@@ -37,10 +39,12 @@
             --btn-reset: #2980b9;
             --btn-player: #8e44ad;
             --btn-theme: #ecf0f1;
+            --btn-settings: #e67e22;
             --border-color: #444;
             --results-bg: #3a3a3a;
             --table-header: #444;
             --stats-bg: #2a3b4c;
+            --modal-bg: rgba(0,0,0,0.7);
         }
 
         body {
@@ -95,6 +99,12 @@
             background-color: var(--timer-bg);
             border-radius: 5px;
             font-variant-numeric: tabular-nums;
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
         }
 
         .players {
@@ -170,6 +180,13 @@
         .btn-theme {
             background-color: var(--btn-theme);
             color: var(--container-bg);
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-settings {
+            background-color: var(--btn-settings);
+            color: white;
             padding: 8px 12px;
             font-size: 0.8rem;
         }
@@ -253,6 +270,59 @@
             font-size: 1.4rem;
             font-weight: bold;
             margin-top: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-bg);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .modal h3 {
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--player-bg);
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
         }
 
         @media (min-width: 768px) {
@@ -357,12 +427,16 @@
 <body>
     <div class="header">
         <h1>Настольный теннис</h1>
-        <button id="themeBtn" class="btn-theme">Темная тема</button>
+        <div>
+            <button id="settingsBtn" class="btn-settings">Настройки</button>
+            <button id="themeBtn" class="btn-theme">Темная тема</button>
+        </div>
     </div>
 
     <div class="container">
         <div class="content">
             <div class="timer" id="timer">00:00:00</div>
+            <div class="game-info" id="gameInfo">Гейм 1 из 6</div>
             
             <div class="controls">
                 <button id="startBtn" class="btn-start">Старт</button>
@@ -420,6 +494,28 @@
         </div>
     </div>
 
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h3>Настройки игры</h3>
+            <div class="form-group">
+                <label for="totalGames">Количество геймов (четное число):</label>
+                <input type="number" id="totalGames" min="2" step="2" value="6">
+            </div>
+            <div class="form-group">
+                <label for="player1Name">Имя игрока 1:</label>
+                <input type="text" id="player1Name" value="Игрок 1">
+            </div>
+            <div class="form-group">
+                <label for="player2Name">Имя игрока 2:</label>
+                <input type="text" id="player2Name" value="Игрок 2">
+            </div>
+            <div class="modal-buttons">
+                <button id="cancelSettings" class="btn-reset">Отмена</button>
+                <button id="saveSettings" class="btn-start">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Переменные для хранения состояния
         let timerInterval;
@@ -432,6 +528,9 @@
         let player2Times = [];
         let gameCount = 0;
         let isDarkTheme = false;
+        let totalGames = 6;
+        let player1Name = "Игрок 1";
+        let player2Name = "Игрок 2";
         
         // Элементы DOM
         const timerElement = document.getElementById('timer');
@@ -447,11 +546,26 @@
         const themeBtn = document.getElementById('themeBtn');
         const avgTime1Element = document.getElementById('avgTime1');
         const avgTime2Element = document.getElementById('avgTime2');
+        const gameInfoElement = document.getElementById('gameInfo');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const totalGamesInput = document.getElementById('totalGames');
+        const player1NameInput = document.getElementById('player1Name');
+        const player2NameInput = document.getElementById('player2Name');
+        const cancelSettingsBtn = document.getElementById('cancelSettings');
+        const saveSettingsBtn = document.getElementById('saveSettings');
+        const player1Title = document.querySelector('.player1-color');
+        const player2Title = document.querySelector('.player2-color');
+        const player1Button = document.getElementById('player1Btn');
+        const player2Button = document.getElementById('player2Btn');
         
         // Проверяем сохраненную тему
         if (localStorage.getItem('theme') === 'dark') {
             enableDarkTheme();
         }
+        
+        // Загружаем настройки из localStorage
+        loadSettings();
         
         // Функция для включения темной темы
         function enableDarkTheme() {
@@ -467,6 +581,64 @@
             themeBtn.textContent = 'Темная тема';
             isDarkTheme = false;
             localStorage.setItem('theme', 'light');
+        }
+        
+        // Загружаем настройки
+        function loadSettings() {
+            const savedTotalGames = localStorage.getItem('totalGames');
+            const savedPlayer1Name = localStorage.getItem('player1Name');
+            const savedPlayer2Name = localStorage.getItem('player2Name');
+            
+            if (savedTotalGames) {
+                totalGames = parseInt(savedTotalGames);
+                totalGamesInput.value = totalGames;
+            }
+            
+            if (savedPlayer1Name) {
+                player1Name = savedPlayer1Name;
+                player1NameInput.value = player1Name;
+                player1Title.textContent = player1Name;
+                player1Button.textContent = `Победа ${player1Name}`;
+            }
+            
+            if (savedPlayer2Name) {
+                player2Name = savedPlayer2Name;
+                player2NameInput.value = player2Name;
+                player2Title.textContent = player2Name;
+                player2Button.textContent = `Победа ${player2Name}`;
+            }
+            
+            updateGameInfo();
+        }
+        
+        // Сохраняем настройки
+        function saveSettings() {
+            totalGames = parseInt(totalGamesInput.value);
+            // Гарантируем четное количество геймов
+            if (totalGames % 2 !== 0) {
+                totalGames += 1;
+                totalGamesInput.value = totalGames;
+            }
+            
+            player1Name = player1NameInput.value;
+            player2Name = player2NameInput.value;
+            
+            localStorage.setItem('totalGames', totalGames);
+            localStorage.setItem('player1Name', player1Name);
+            localStorage.setItem('player2Name', player2Name);
+            
+            player1Title.textContent = player1Name;
+            player2Title.textContent = player2Name;
+            player1Button.textContent = `Победа ${player1Name}`;
+            player2Button.textContent = `Победа ${player2Name}`;
+            
+            updateGameInfo();
+            settingsModal.style.display = 'none';
+        }
+        
+        // Обновляем информацию о текущем гейме
+        function updateGameInfo() {
+            gameInfoElement.textContent = `Гейм ${gameCount + 1} из ${totalGames}`;
         }
         
         // Переключение темы
@@ -541,6 +713,7 @@
             historyBodyElement.innerHTML = '';
             avgTime1Element.textContent = '00:00:00';
             avgTime2Element.textContent = '00:00:00';
+            updateGameInfo();
         }
         
         // Расчет среднего времени
@@ -567,9 +740,10 @@
                 
                 // Добавляем запись в историю
                 const newRow = document.createElement('tr');
+                const winnerName = player === 1 ? player1Name : player2Name;
                 newRow.innerHTML = `
                     <td>${gameCount}</td>
-                    <td>Игрок ${player}</td>
+                    <td>${winnerName}</td>
                     <td>${formatTime(currentTime)}</td>
                 `;
                 historyBodyElement.appendChild(newRow);
@@ -586,11 +760,17 @@
                 
                 // Обновляем статистику
                 updateStats();
+                updateGameInfo();
                 
-                // Проверяем, достигнут ли лимит геймов (5-10)
-                if (player1Score >= 5 || player2Score >= 5) {
+                // Проверяем, достигнуто ли необходимое количество геймов
+                if (gameCount >= totalGames) {
                     determineWinner();
                     stopTimer();
+                } else {
+                    // Сбрасываем таймер для следующего гейма
+                    elapsedTime = 0;
+                    timerElement.textContent = '00:00:00';
+                    startTime = Date.now();
                 }
             }
         }
@@ -599,28 +779,47 @@
         function determineWinner() {
             let analysisText = "";
             
+            // Гарантируем, что каждый игрок сыграл одинаковое количество геймов
+            // Добавляем "виртуальные" геймы с максимальным временем для игроков, 
+            // которые сыграли меньше геймов
+            const gamesPerPlayer = totalGames / 2;
+            
+            if (player1Times.length < gamesPerPlayer) {
+                const missingGames = gamesPerPlayer - player1Times.length;
+                for (let i = 0; i < missingGames; i++) {
+                    player1Times.push(Number.MAX_SAFE_INTEGER);
+                }
+            }
+            
+            if (player2Times.length < gamesPerPlayer) {
+                const missingGames = gamesPerPlayer - player2Times.length;
+                for (let i = 0; i < missingGames; i++) {
+                    player2Times.push(Number.MAX_SAFE_INTEGER);
+                }
+            }
+            
             if (player1Times.length > 0 && player2Times.length > 0) {
                 const sumPlayer1 = player1Times.reduce((a, b) => a + b, 0);
                 const sumPlayer2 = player2Times.reduce((a, b) => a + b, 0);
                 
-                analysisText += `Суммарное время побед Игрока 1: ${formatTime(sumPlayer1)}<br>`;
-                analysisText += `Суммарное время побед Игрока 2: ${formatTime(sumPlayer2)}<br><br>`;
+                analysisText += `Суммарное время побед ${player1Name}: ${formatTime(sumPlayer1)}<br>`;
+                analysisText += `Суммарное время побед ${player2Name}: ${formatTime(sumPlayer2)}<br><br>`;
                 
                 // Добавляем информацию о среднем времени
-                analysisText += `Среднее время победы Игрока 1: ${formatTime(calculateAverageTime(player1Times))}<br>`;
-                analysisText += `Среднее время победы Игрока 2: ${formatTime(calculateAverageTime(player2Times))}<br><br>`;
+                analysisText += `Среднее время победы ${player1Name}: ${formatTime(calculateAverageTime(player1Times))}<br>`;
+                analysisText += `Среднее время победы ${player2Name}: ${formatTime(calculateAverageTime(player2Times))}<br><br>`;
                 
                 if (sumPlayer1 < sumPlayer2) {
-                    analysisText += `<span class="player1-color">Победитель: Игрок 1! Меньшее суммарное время побед.</span>`;
+                    analysisText += `<span class="player1-color">Победитель: ${player1Name}! Меньшее суммарное время побед.</span>`;
                 } else if (sumPlayer2 < sumPlayer1) {
-                    analysisText += `<span class="player2-color">Победитель: Игрок 2! Меньшее суммарное время побед.</span>`;
+                    analysisText += `<span class="player2-color">Победитель: ${player2Name}! Меньшее суммарное время побед.</span>`;
                 } else {
                     analysisText += "Ничья! Суммарное время побед одинаково.";
                 }
             } else if (player1Times.length > 0) {
-                analysisText += `<span class="player1-color">Победитель: Игрок 1! У Игрока 2 нет побед.</span>`;
+                analysisText += `<span class="player1-color">Победитель: ${player1Name}! У ${player2Name} нет побед.</span>`;
             } else if (player2Times.length > 0) {
-                analysisText += `<span class="player2-color">Победитель: Игрок 2! У Игрока 1 нет побед.</span>`;
+                analysisText += `<span class="player2-color">Победитель: ${player2Name}! У ${player1Name} нет побед.</span>`;
             } else {
                 analysisText += "Победитель не определен.";
             }
@@ -635,6 +834,28 @@
         player1Btn.addEventListener('click', () => registerWin(1));
         player2Btn.addEventListener('click', () => registerWin(2));
         themeBtn.addEventListener('click', toggleTheme);
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'flex';
+        });
+        cancelSettingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+            // Восстанавливаем текущие значения
+            totalGamesInput.value = totalGames;
+            player1NameInput.value = player1Name;
+            player2NameInput.value = player2Name;
+        });
+        saveSettingsBtn.addEventListener('click', saveSettings);
+        
+        // Закрытие модального окна при клике вне его
+        window.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.style.display = 'none';
+                // Восстанавливаем текущие значения
+                totalGamesInput.value = totalGames;
+                player1NameInput.value = player1Name;
+                player2NameInput.value = player2Name;
+            }
+        });
         
         // Адаптация к изменению размера экрана
         window.addEventListener('resize', function() {
