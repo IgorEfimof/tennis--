@@ -7,335 +7,317 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TIME">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Настольный теннис - определение победителя</title>
+    <title>Определение победителя в настольном теннисе</title>
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2ecc71;
-            --background-color: #f0f3f5;
-            --container-bg: #ffffff;
-            --text-color: #2c3e50;
-            --border-color: #dde4e9;
-            --player1-color: #2980b9;
-            --player2-color: #c0392b;
-            --button-bg: #ecf0f1;
-            --shadow-color: rgba(0, 0, 0, 0.1);
+            --bg-color: #f5f5f5;
+            --container-bg: white;
+            --text-color: #333;
+            --timer-bg: #eee;
+            --player-bg: #f8f9fa;
+            --btn-start: #2ecc71;
+            --btn-stop: #e74c3c;
+            --btn-reset: #3498db;
+            --btn-player: #9b59b6;
+            --btn-theme: #34495e;
+            --border-color: #ddd;
+            --results-bg: #f8f9fa;
+            --table-header: #f2f2f2;
         }
 
         .dark-theme {
-            --primary-color: #2c3e50;
-            --secondary-color: #27ae60;
-            --background-color: #1a1a1a;
+            --bg-color: #1a1a1a;
             --container-bg: #2d2d2d;
-            --text-color: #ecf0f1;
+            --text-color: #f0f0f0;
+            --timer-bg: #3d3d3d;
+            --player-bg: #3a3a3a;
+            --btn-start: #27ae60;
+            --btn-stop: #c0392b;
+            --btn-reset: #2980b9;
+            --btn-player: #8e44ad;
+            --btn-theme: #ecf0f1;
             --border-color: #444;
-            --player1-color: #3498db;
-            --player2-color: #e74c3c;
-            --button-bg: #3d3d3d;
-            --shadow-color: rgba(0, 0, 0, 0.3);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            --results-bg: #3a3a3a;
+            --table-header: #444;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            height: 100vh;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 20px;
+            padding: 10px 15px;
             background-color: var(--container-bg);
             border-bottom: 1px solid var(--border-color);
         }
 
-        .header h1 {
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-
-        .theme-toggle {
-            background: var(--button-bg);
-            border: none;
-            border-radius: 20px;
-            padding: 8px 15px;
-            color: var(--text-color);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-        }
-
-        .theme-toggle svg {
-            width: 18px;
-            height: 18px;
-            fill: var(--text-color);
-        }
-
         .container {
+            max-width: 100%;
             flex: 1;
-            display: flex;
-            flex-direction: column;
             padding: 15px;
-            overflow: hidden;
+            box-sizing: border-box;
         }
 
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            gap: 15px;
-            overflow: hidden;
-        }
-
-        .timer-section {
+        .content {
             background-color: var(--container-bg);
-            border-radius: 12px;
+            border-radius: 10px;
             padding: 15px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 0 0 15px 0;
         }
 
         .timer {
-            font-size: 2.8rem;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            color: var(--primary-color);
-            margin: 10px 0;
-            padding: 5px 20px;
-            border-radius: 10px;
-            background-color: var(--button-bg);
-            width: 100%;
+            font-size: 2rem;
             text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: var(--timer-bg);
+            border-radius: 5px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .players {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .player {
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: var(--player-bg);
+            box-sizing: border-box;
+        }
+
+        .player h2 {
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+
+        .score {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--text-color);
         }
 
         .controls {
             display: flex;
-            gap: 10px;
-            width: 100%;
+            flex-wrap: wrap;
             justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         button {
-            padding: 12px 18px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            flex: 1;
-            max-width: 120px;
+            transition: opacity 0.3s;
         }
 
         .btn-start {
-            background-color: var(--secondary-color);
+            background-color: var(--btn-start);
             color: white;
         }
 
         .btn-stop {
-            background-color: #e74c3c;
+            background-color: var(--btn-stop);
             color: white;
         }
 
         .btn-reset {
-            background-color: var(--button-bg);
-            color: var(--text-color);
+            background-color: var(--btn-reset);
+            color: white;
+        }
+
+        .btn-player {
+            background-color: var(--btn-player);
+            color: white;
+            font-size: 1rem;
+            padding: 12px 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-theme {
+            background-color: var(--btn-theme);
+            color: var(--container-bg);
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        button:hover {
+            opacity: 0.9;
         }
 
         button:disabled {
-            opacity: 0.6;
+            background-color: #95a5a6;
             cursor: not-allowed;
         }
 
-        .players-section {
-            display: flex;
-            gap: 15px;
-            flex: 1;
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--results-bg);
+            border-radius: 5px;
             overflow: hidden;
         }
 
-        .player {
-            flex: 1;
-            background-color: var(--container-bg);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-
-        .player h2 {
+        .winner {
             font-size: 1.2rem;
-            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 8px;
         }
 
-        .player1 h2 {
-            color: var(--player1-color);
+        .player1-color {
+            color: #2980b9;
         }
 
-        .player2 h2 {
-            color: var(--player2-color);
-        }
-
-        .score {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin: 10px 0 20px;
-        }
-
-        .player-button {
-            background-color: var(--button-bg);
-            color: var(--text-color);
-            padding: 15px;
-            width: 100%;
-            margin-top: auto;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .player1 .player-button {
-            border: 2px solid var(--player1-color);
-        }
-
-        .player2 .player-button {
-            border: 2px solid var(--player2-color);
-        }
-
-        .results-section {
-            background-color: var(--container-bg);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .results-section h3 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-
-        #winnerAnalysis {
-            padding: 10px;
-            background-color: var(--button-bg);
-            border-radius: 8px;
-            margin-bottom: 15px;
-            min-height: 60px;
+        .player2-color {
+            color: #c0392b;
         }
 
         .history {
-            overflow: auto;
-            max-height: 180px;
+            margin-top: 15px;
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 300px;
         }
 
         th, td {
-            padding: 8px 10px;
+            padding: 8px;
             text-align: center;
             border-bottom: 1px solid var(--border-color);
         }
 
         th {
-            background-color: var(--button-bg);
-            font-weight: 600;
-            position: sticky;
-            top: 0;
+            background-color: var(--table-header);
         }
 
-        .player1-color {
-            color: var(--player1-color);
-            font-weight: 600;
-        }
-
-        .player2-color {
-            color: var(--player2-color);
-            font-weight: 600;
-        }
-
-        /* Адаптация для различных ориентаций iPad */
-        @media (min-width: 768px) and (max-height: 1024px) and (orientation: portrait) {
+        @media (min-width: 768px) {
             .container {
                 padding: 20px;
             }
             
-            .header h1 {
+            .content {
+                padding: 20px;
+            }
+            
+            h1 {
                 font-size: 1.8rem;
             }
             
             .timer {
-                font-size: 3.5rem;
+                font-size: 2.5rem;
             }
             
-            button {
-                padding: 15px 20px;
-                max-width: 140px;
-            }
-        }
-
-        @media (min-width: 1024px) and (orientation: landscape) {
-            .container {
-                padding: 15px;
-            }
-            
-            .main-content {
-                flex-direction: row;
-                height: 100%;
-            }
-            
-            .timer-section {
-                width: 25%;
-                justify-content: center;
-            }
-            
-            .players-section {
-                width: 50%;
-            }
-            
-            .results-section {
-                width: 25%;
-            }
-        }
-
-        /* Адаптация для split view на iPad */
-        @media (max-width: 1024px) and (orientation: landscape) {
-            .header h1 {
-                font-size: 1.2rem;
-            }
-            
-            .timer {
-                font-size: 2.2rem;
+            .player h2 {
+                font-size: 1.3rem;
             }
             
             .score {
-                font-size: 2.8rem;
+                font-size: 2.5rem;
             }
             
-            .player-button {
-                padding: 12px;
+            button {
+                padding: 12px 20px;
                 font-size: 1rem;
+            }
+            
+            .btn-player {
+                font-size: 1.1rem;
+                padding: 15px 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .players {
+                flex-direction: column;
+            }
+            
+            .player {
+                width: 100%;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .controls button {
+                width: 100%;
+            }
+        }
+
+        /* Стили для split view на iPad */
+        @media (max-width: 1024px) and (orientation: landscape) {
+            .container {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 10px;
+            }
+            
+            .timer {
+                font-size: 1.8rem;
+                margin: 10px 0;
+            }
+            
+            .player {
+                min-width: 120px;
+                padding: 8px;
+            }
+            
+            .player h2 {
+                font-size: 1rem;
+            }
+            
+            .score {
+                font-size: 1.8rem;
+            }
+            
+            button {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .btn-player {
+                font-size: 0.9rem;
+                padding: 10px 15px;
             }
         }
     </style>
@@ -343,41 +325,34 @@
 <body>
     <div class="header">
         <h1>Настольный теннис</h1>
-        <button class="theme-toggle">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M12 2.25A9.75 9.75 0 1 1 2.25 12 9.76 9.76 0 0 1 12 2.25M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9M12 8.25A3.75 3.75 0 1 1 8.25 12 3.75 3.75 0 0 1 12 8.25"/>
-            </svg>
-            Сменить тему
-        </button>
+        <button id="themeBtn" class="btn-theme">Темная тема</button>
     </div>
 
     <div class="container">
-        <div class="main-content">
-            <div class="timer-section">
-                <h2>Время матча</h2>
-                <div class="timer" id="timer">00:00:00</div>
-                <div class="controls">
-                    <button id="startBtn" class="btn-start">Старт</button>
-                    <button id="stopBtn" class="btn-stop" disabled>Стоп</button>
-                    <button id="resetBtn" class="btn-reset">Сброс</button>
-                </div>
+        <div class="content">
+            <div class="timer" id="timer">00:00:00</div>
+            
+            <div class="controls">
+                <button id="startBtn" class="btn-start">Старт</button>
+                <button id="stopBtn" class="btn-stop" disabled>Стоп</button>
+                <button id="resetBtn" class="btn-reset">Сброс</button>
             </div>
-
-            <div class="players-section">
-                <div class="player player1">
-                    <h2>Игрок 1</h2>
+            
+            <div class="players">
+                <div class="player">
+                    <h2 class="player1-color">Игрок 1</h2>
                     <div class="score" id="score1">0</div>
-                    <button id="player1Btn" class="player-button" disabled>Победа</button>
+                    <button id="player1Btn" class="btn-player" disabled>Победа игрока 1</button>
                 </div>
                 
-                <div class="player player2">
-                    <h2>Игрок 2</h2>
+                <div class="player">
+                    <h2 class="player2-color">Игрок 2</h2>
                     <div class="score" id="score2">0</div>
-                    <button id="player2Btn" class="player-button" disabled>Победа</button>
+                    <button id="player2Btn" class="btn-player" disabled>Победа игрока 2</button>
                 </div>
             </div>
-
-            <div class="results-section">
+            
+            <div class="results">
                 <h3>Анализ победителя:</h3>
                 <div id="winnerAnalysis">Игра еще не завершена</div>
                 
@@ -423,7 +398,7 @@
         const score2Element = document.getElementById('score2');
         const winnerAnalysisElement = document.getElementById('winnerAnalysis');
         const historyBodyElement = document.getElementById('historyBody');
-        const themeToggle = document.querySelector('.theme-toggle');
+        const themeBtn = document.getElementById('themeBtn');
         
         // Проверяем сохраненную тему
         if (localStorage.getItem('theme') === 'dark') {
@@ -433,12 +408,7 @@
         // Функция для включения темной темы
         function enableDarkTheme() {
             document.body.classList.add('dark-theme');
-            themeToggle.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M12 2.25A9.75 9.75 0 1 1 2.25 12 9.76 9.76 0 0 1 12 2.25M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9M12 8.25A3.75 3.75 0 1 1 8.25 12 3.75 3.75 0 0 1 12 8.25" fill="white"/>
-                </svg>
-                Светлая тема
-            `;
+            themeBtn.textContent = 'Светлая тема';
             isDarkTheme = true;
             localStorage.setItem('theme', 'dark');
         }
@@ -446,12 +416,7 @@
         // Функция для выключения темной темы
         function disableDarkTheme() {
             document.body.classList.remove('dark-theme');
-            themeToggle.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M12 2.25A9.75 9.75 0 1 1 2.25 12 9.76 9.76 0 0 1 12 2.25M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9M12 8.25A3.75 3.75 0 1 1 8.25 12 3.75 3.75 0 0 1 12 8.25"/>
-                </svg>
-                Тёмная тема
-            `;
+            themeBtn.textContent = 'Темная тема';
             isDarkTheme = false;
             localStorage.setItem('theme', 'light');
         }
@@ -538,7 +503,7 @@
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
                     <td>${gameCount}</td>
-                    <td class="player${player}-color">Игрок ${player}</td>
+                    <td>Игрок ${player}</td>
                     <td>${formatTime(currentTime)}</td>
                 `;
                 historyBodyElement.appendChild(newRow);
@@ -553,7 +518,7 @@
                     player2Times.push(currentTime);
                 }
                 
-                // Проверяем, достигнут ли лимит геймов (5)
+                // Проверяем, достигнут ли лимит геймов (5-10)
                 if (player1Score >= 5 || player2Score >= 5) {
                     determineWinner();
                     stopTimer();
@@ -561,7 +526,7 @@
             }
         }
         
-        // Определение победителя - теперь побеждает тот, кто разыгрывал дольше
+        // Определение победителя
         function determineWinner() {
             let analysisText = "";
             
@@ -572,11 +537,10 @@
                 analysisText += `Суммарное время побед Игрока 1: ${formatTime(sumPlayer1)}<br>`;
                 analysisText += `Суммарное время побед Игрока 2: ${formatTime(sumPlayer2)}<br><br>`;
                 
-                // Изменено условие: побеждает тот, у кого больше суммарное время
-                if (sumPlayer1 > sumPlayer2) {
-                    analysisText += `<span class="player1-color">Победитель: Игрок 1! Большее суммарное время побед.</span>`;
-                } else if (sumPlayer2 > sumPlayer1) {
-                    analysisText += `<span class="player2-color">Победитель: Игрок 2! Большее суммарное время побед.</span>`;
+                if (sumPlayer1 < sumPlayer2) {
+                    analysisText += `<span class="player1-color">Победитель: Игрок 1! Меньшее суммарное время побед.</span>`;
+                } else if (sumPlayer2 < sumPlayer1) {
+                    analysisText += `<span class="player2-color">Победитель: Игрок 2! Меньшее суммарное время побед.</span>`;
                 } else {
                     analysisText += "Ничья! Суммарное время побед одинаково.";
                 }
@@ -597,7 +561,7 @@
         resetBtn.addEventListener('click', resetGame);
         player1Btn.addEventListener('click', () => registerWin(1));
         player2Btn.addEventListener('click', () => registerWin(2));
-        themeToggle.addEventListener('click', toggleTheme);
+        themeBtn.addEventListener('click', toggleTheme);
         
         // Адаптация к изменению размера экрана
         window.addEventListener('resize', function() {
