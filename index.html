@@ -26,6 +26,8 @@
             --table-header: #f2f2f2;
             --stats-bg: #e8f4fc;
             --modal-bg: rgba(0,0,0,0.5);
+            --select-bg: white;
+            --select-border: #ccc;
         }
 
         .dark-theme {
@@ -45,6 +47,8 @@
             --table-header: #444;
             --stats-bg: #2a3b4c;
             --modal-bg: rgba(0,0,0,0.7);
+            --select-bg: #3a3a3a;
+            --select-border: #555;
         }
 
         body {
@@ -123,6 +127,13 @@
             border-radius: 5px;
             background-color: var(--player-bg);
             box-sizing: border-box;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .player.active {
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
         }
 
         .player h2 {
@@ -150,7 +161,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: opacity 0.3s;
+            transition: all 0.3s;
         }
 
         .btn-start {
@@ -193,11 +204,17 @@
 
         button:hover {
             opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         button:disabled {
             background-color: #95a5a6;
             cursor: not-allowed;
+            transform: none;
         }
 
         .results {
@@ -296,6 +313,7 @@
 
         .modal h3 {
             margin-top: 0;
+            text-align: center;
         }
 
         .form-group {
@@ -308,12 +326,12 @@
             font-weight: bold;
         }
 
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 8px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--select-border);
             border-radius: 5px;
-            background-color: var(--player-bg);
+            background-color: var(--select-bg);
             color: var(--text-color);
             box-sizing: border-box;
         }
@@ -323,6 +341,27 @@
             justify-content: flex-end;
             gap: 10px;
             margin-top: 20px;
+        }
+
+        .games-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .game-option {
+            padding: 8px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .game-option.selected {
+            background-color: var(--btn-player);
+            color: white;
+            border-color: var(--btn-player);
         }
 
         @media (min-width: 768px) {
@@ -381,6 +420,15 @@
             
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .games-selector {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .game-option {
+                text-align: center;
             }
         }
 
@@ -445,13 +493,13 @@
             </div>
             
             <div class="players">
-                <div class="player">
+                <div class="player" id="player1">
                     <h2 class="player1-color">Игрок 1</h2>
                     <div class="score" id="score1">0</div>
                     <button id="player1Btn" class="btn-player" disabled>Победа игрока 1</button>
                 </div>
                 
-                <div class="player">
+                <div class="player" id="player2">
                     <h2 class="player2-color">Игрок 2</h2>
                     <div class="score" id="score2">0</div>
                     <button id="player2Btn" class="btn-player" disabled>Победа игрока 2</button>
@@ -498,8 +546,12 @@
         <div class="modal-content">
             <h3>Настройки игры</h3>
             <div class="form-group">
-                <label for="totalGames">Количество геймов (четное число):</label>
-                <input type="number" id="totalGames" min="2" step="2" value="6">
+                <label for="totalGames">Количество геймов:</label>
+                <select id="totalGames">
+                    <option value="6">6 геймов</option>
+                    <option value="8">8 геймов</option>
+                    <option value="10">10 геймов</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="player1Name">Имя игрока 1:</label>
@@ -531,6 +583,7 @@
         let totalGames = 6;
         let player1Name = "Игрок 1";
         let player2Name = "Игрок 2";
+        let currentPlayerActive = null;
         
         // Элементы DOM
         const timerElement = document.getElementById('timer');
@@ -558,6 +611,8 @@
         const player2Title = document.querySelector('.player2-color');
         const player1Button = document.getElementById('player1Btn');
         const player2Button = document.getElementById('player2Btn');
+        const player1Element = document.getElementById('player1');
+        const player2Element = document.getElementById('player2');
         
         // Проверяем сохраненную тему
         if (localStorage.getItem('theme') === 'dark') {
@@ -614,12 +669,6 @@
         // Сохраняем настройки
         function saveSettings() {
             totalGames = parseInt(totalGamesInput.value);
-            // Гарантируем четное количество геймов
-            if (totalGames % 2 !== 0) {
-                totalGames += 1;
-                totalGamesInput.value = totalGames;
-            }
-            
             player1Name = player1NameInput.value;
             player2Name = player2NameInput.value;
             
@@ -676,6 +725,12 @@
                 stopBtn.disabled = false;
                 player1Btn.disabled = false;
                 player2Btn.disabled = false;
+                
+                // Сброс выделения активного игрока
+                if (currentPlayerActive) {
+                    currentPlayerActive.classList.remove('active');
+                    currentPlayerActive = null;
+                }
             }
         }
         
@@ -714,6 +769,12 @@
             avgTime1Element.textContent = '00:00:00';
             avgTime2Element.textContent = '00:00:00';
             updateGameInfo();
+            
+            // Сброс выделения активного игрока
+            if (currentPlayerActive) {
+                currentPlayerActive.classList.remove('active');
+                currentPlayerActive = null;
+            }
         }
         
         // Расчет среднего времени
@@ -732,11 +793,31 @@
             avgTime2Element.textContent = formatTime(avgTime2);
         }
         
+        // Подсветка активного игрока
+        function highlightPlayer(player) {
+            // Сброс предыдущего выделения
+            if (currentPlayerActive) {
+                currentPlayerActive.classList.remove('active');
+            }
+            
+            // Установка нового выделения
+            if (player === 1) {
+                player1Element.classList.add('active');
+                currentPlayerActive = player1Element;
+            } else {
+                player2Element.classList.add('active');
+                currentPlayerActive = player2Element;
+            }
+        }
+        
         // Регистрация победы игрока
         function registerWin(player) {
             if (isRunning) {
                 const currentTime = elapsedTime;
                 gameCount++;
+                
+                // Подсветка активного игрока
+                highlightPlayer(player);
                 
                 // Добавляем запись в историю
                 const newRow = document.createElement('tr');
