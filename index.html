@@ -23,6 +23,7 @@
             --border-color: #ddd;
             --results-bg: #f8f9fa;
             --table-header: #f2f2f2;
+            --stats-bg: #e8f4fc;
         }
 
         .dark-theme {
@@ -39,6 +40,7 @@
             --border-color: #444;
             --results-bg: #3a3a3a;
             --table-header: #444;
+            --stats-bg: #2a3b4c;
         }
 
         body {
@@ -227,6 +229,32 @@
             background-color: var(--table-header);
         }
 
+        .stats {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--stats-bg);
+            border-radius: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-box {
+            padding: 10px;
+            border-radius: 5px;
+            background-color: var(--player-bg);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
         @media (min-width: 768px) {
             .container {
                 padding: 20px;
@@ -279,6 +307,10 @@
             
             .controls button {
                 width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -352,6 +384,20 @@
                 </div>
             </div>
             
+            <div class="stats">
+                <h3>Статистика по геймам:</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div>Среднее время победы Игрока 1</div>
+                        <div class="stat-value" id="avgTime1">00:00:00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div>Среднее время победы Игрока 2</div>
+                        <div class="stat-value" id="avgTime2">00:00:00</div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="results">
                 <h3>Анализ победителя:</h3>
                 <div id="winnerAnalysis">Игра еще не завершена</div>
@@ -399,6 +445,8 @@
         const winnerAnalysisElement = document.getElementById('winnerAnalysis');
         const historyBodyElement = document.getElementById('historyBody');
         const themeBtn = document.getElementById('themeBtn');
+        const avgTime1Element = document.getElementById('avgTime1');
+        const avgTime2Element = document.getElementById('avgTime2');
         
         // Проверяем сохраненную тему
         if (localStorage.getItem('theme') === 'dark') {
@@ -491,6 +539,24 @@
             player2Btn.disabled = true;
             winnerAnalysisElement.textContent = 'Игра еще не завершена';
             historyBodyElement.innerHTML = '';
+            avgTime1Element.textContent = '00:00:00';
+            avgTime2Element.textContent = '00:00:00';
+        }
+        
+        // Расчет среднего времени
+        function calculateAverageTime(timesArray) {
+            if (timesArray.length === 0) return 0;
+            const sum = timesArray.reduce((a, b) => a + b, 0);
+            return sum / timesArray.length;
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            const avgTime1 = calculateAverageTime(player1Times);
+            const avgTime2 = calculateAverageTime(player2Times);
+            
+            avgTime1Element.textContent = formatTime(avgTime1);
+            avgTime2Element.textContent = formatTime(avgTime2);
         }
         
         // Регистрация победы игрока
@@ -518,6 +584,9 @@
                     player2Times.push(currentTime);
                 }
                 
+                // Обновляем статистику
+                updateStats();
+                
                 // Проверяем, достигнут ли лимит геймов (5-10)
                 if (player1Score >= 5 || player2Score >= 5) {
                     determineWinner();
@@ -536,6 +605,10 @@
                 
                 analysisText += `Суммарное время побед Игрока 1: ${formatTime(sumPlayer1)}<br>`;
                 analysisText += `Суммарное время побед Игрока 2: ${formatTime(sumPlayer2)}<br><br>`;
+                
+                // Добавляем информацию о среднем времени
+                analysisText += `Среднее время победы Игрока 1: ${formatTime(calculateAverageTime(player1Times))}<br>`;
+                analysisText += `Среднее время победы Игрока 2: ${formatTime(calculateAverageTime(player2Times))}<br><br>`;
                 
                 if (sumPlayer1 < sumPlayer2) {
                     analysisText += `<span class="player1-color">Победитель: Игрок 1! Меньшее суммарное время побед.</span>`;
