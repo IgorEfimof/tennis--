@@ -701,6 +701,10 @@
         
         // Форматирование времени
         function formatTime(milliseconds) {
+            if (isNaN(milliseconds) || milliseconds === 0) {
+                return "00:00:00";
+            }
+            
             const date = new Date(milliseconds);
             const minutes = date.getUTCMinutes().toString().padStart(2, '0');
             const seconds = date.getUTCSeconds().toString().padStart(2, '0');
@@ -865,44 +869,35 @@
             // которые сыграли меньше геймов
             const gamesPerPlayer = totalGames / 2;
             
-            if (player1Times.length < gamesPerPlayer) {
-                const missingGames = gamesPerPlayer - player1Times.length;
-                for (let i = 0; i < missingGames; i++) {
-                    player1Times.push(Number.MAX_SAFE_INTEGER);
-                }
+            // Создаем копии массивов времени, чтобы не изменять оригиналы
+            let player1TimesAdjusted = [...player1Times];
+            let player2TimesAdjusted = [...player2Times];
+            
+            // Добавляем "виртуальные" геймы с максимальным разумным временем (1 час)
+            const maxReasonableTime = 3600000; // 1 час в миллисекундах
+            while (player1TimesAdjusted.length < gamesPerPlayer) {
+                player1TimesAdjusted.push(maxReasonableTime);
+            }
+            while (player2TimesAdjusted.length < gamesPerPlayer) {
+                player2TimesAdjusted.push(maxReasonableTime);
             }
             
-            if (player2Times.length < gamesPerPlayer) {
-                const missingGames = gamesPerPlayer - player2Times.length;
-                for (let i = 0; i < missingGames; i++) {
-                    player2Times.push(Number.MAX_SAFE_INTEGER);
-                }
-            }
+            const sumPlayer1 = player1TimesAdjusted.reduce((a, b) => a + b, 0);
+            const sumPlayer2 = player2TimesAdjusted.reduce((a, b) => a + b, 0);
             
-            if (player1Times.length > 0 && player2Times.length > 0) {
-                const sumPlayer1 = player1Times.reduce((a, b) => a + b, 0);
-                const sumPlayer2 = player2Times.reduce((a, b) => a + b, 0);
-                
-                analysisText += `Суммарное время побед ${player1Name}: ${formatTime(sumPlayer1)}<br>`;
-                analysisText += `Суммарное время побед ${player2Name}: ${formatTime(sumPlayer2)}<br><br>`;
-                
-                // Добавляем информацию о среднем времени
-                analysisText += `Среднее время победы ${player1Name}: ${formatTime(calculateAverageTime(player1Times))}<br>`;
-                analysisText += `Среднее время победы ${player2Name}: ${formatTime(calculateAverageTime(player2Times))}<br><br>`;
-                
-                if (sumPlayer1 < sumPlayer2) {
-                    analysisText += `<span class="player1-color">Победитель: ${player1Name}! Меньшее суммарное время побед.</span>`;
-                } else if (sumPlayer2 < sumPlayer1) {
-                    analysisText += `<span class="player2-color">Победитель: ${player2Name}! Меньшее суммарное время побед.</span>`;
-                } else {
-                    analysisText += "Ничья! Суммарное время побед одинаково.";
-                }
-            } else if (player1Times.length > 0) {
-                analysisText += `<span class="player1-color">Победитель: ${player1Name}! У ${player2Name} нет побед.</span>`;
-            } else if (player2Times.length > 0) {
-                analysisText += `<span class="player2-color">Победитель: ${player2Name}! У ${player1Name} нет побед.</span>`;
+            analysisText += `Суммарное время побед ${player1Name}: ${formatTime(sumPlayer1)}<br>`;
+            analysisText += `Суммарное время побед ${player2Name}: ${formatTime(sumPlayer2)}<br><br>`;
+            
+            // Добавляем информацию о среднем времени
+            analysisText += `Среднее время победы ${player1Name}: ${formatTime(calculateAverageTime(player1TimesAdjusted))}<br>`;
+            analysisText += `Среднее время победы ${player2Name}: ${formatTime(calculateAverageTime(player2TimesAdjusted))}<br><br>`;
+            
+            if (sumPlayer1 < sumPlayer2) {
+                analysisText += `<span class="player1-color">Победитель: ${player1Name}! Меньшее суммарное время побед.</span>`;
+            } else if (sumPlayer2 < sumPlayer1) {
+                analysisText += `<span class="player2-color">Победитель: ${player2Name}! Меньшее суммарное время побед.</span>`;
             } else {
-                analysisText += "Победитель не определен.";
+                analysisText += "Ничья! Суммарное время побед одинаково.";
             }
             
             winnerAnalysisElement.innerHTML = analysisText;
